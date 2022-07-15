@@ -53,7 +53,17 @@ Jul_secyr <- read_csv(here::here("Dataset/Jul_2022_tripdata.csv"))
 
 ```
 
-#
+### Comparaing datatype of the monthly data to further combine them
+```{r}
+compare_df_cols(Apr_secyr, Dec_firstyr, Aug_firstyr, Feb_secyr, Jan_secyr, Jul_firstyr,
+                Jul_secyr, Jun_secyr, Mar_secyr, May_secyr, Nov_firstyr, Oct_firstyr,
+                Sep_firstyr)
+```
 
- 
- 
+### Combining all the monthly dataframe into one dataframe
+```{r}
+bike_rides_df <- rbind(Apr_secyr, Aug_firstyr, Dec_firstyr, Feb_secyr, Jan_secyr, Jul_firstyr, Jul_secyr,
+      Jun_secyr, Mar_secyr, May_secyr, Nov_firstyr, Oct_firstyr, Sep_firstyr)
+```
+
+
