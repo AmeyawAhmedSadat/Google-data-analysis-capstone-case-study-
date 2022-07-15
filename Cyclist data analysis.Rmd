@@ -1,0 +1,59 @@
+---
+title: "Cyclistic bike-share analysis case study!"
+author: "Ameyaw Ahmed Analysis"
+date: '2022-07-15'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Scenario
+You are a junior data analyst working in the marketing analyst team at Cyclistic, a bike-share company in Chicago. The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, your team 
+wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, your team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve your recommendations, so they must be backed up with compelling data  insights and 
+professional data visualizations.  
+
+# Business Task
+ The goal of this project is to understand how casual riders and annual members use Cyclistic bikes differently and to find insights that will help my team design a new marketing strategy to convert casual riders into annual members. Hence the **key questions** that my team and I are trying to answer are 
+
+- *1.* How do annual members and casual riders use Cyclistic bikes differently?
+- *2.* Why would casual riders buy Cyclist annual memberships?
+- *3.* How can Cyclistic use digital media to influence casual riders to become members?  
+
+ My main task is to answer the first Question by finding insigths which would help the
+ marketing team answer the first question.
+ 
+# Source of data
+The data has been made available by Motivate International Inc. under this [license](https://www.divvybikes.com/data-license-agreement). The data is a monthly data which begins at July 11th, 2021 andf ends at July 14th 2021. The data can be found [here](https://divvy-tripdata.s3.amazonaws.com/index.html).
+
+## Libraries
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(janitor)
+library(here)
+library(lubridate)
+```
+
+## Impoting files
+```{r include=FALSE}
+Jul_firstyr <- read_csv(here::here("Dataset/Jul_2021_tripdata.csv"))
+Aug_firstyr <- read_csv(here::here("Dataset/Aug_2021_tripdata.csv"))
+Sep_firstyr <- read_csv(here::here("Dataset/Sep_2021_tripdata.csv"))
+Oct_firstyr <- read.csv(here::here("Dataset/Oct_2021_tripdata.csv"))
+Nov_firstyr <- read_csv(here::here("Dataset/Nov_2021_tripdata.csv"))
+Dec_firstyr <- read_csv(here::here("Dataset/Dec_2021_tripdata.csv"))
+Jan_secyr <- read_csv(here::here("Dataset/Jan_2022_tripdata.csv"))
+Feb_secyr <- read_csv(here::here("Dataset/Feb_2022_tripdata.csv"))
+Mar_secyr <- read_csv(here::here("Dataset/Mar_2022_tripdata.csv"))
+Apr_secyr <- read.csv(here::here("Dataset/Apr_2022_tripdata.csv"))
+May_secyr <- read_csv(here::here("Dataset/May_2022_tripdata.csv"))
+Jun_secyr <- read_csv(here::here("Dataset/Jun_2022_tripdata.csv"))
+Jul_secyr <- read_csv(here::here("Dataset/Jul_2022_tripdata.csv"))
+
+```
+
+
+
+ 
+ 
