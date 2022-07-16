@@ -8,31 +8,31 @@ This exploratory analysis case study is towards Capstome project requirement for
 The analysis will follow the 6 phases of the Data Analysis process: Ask, Prepare, Process, Analyze, and Act. A brief explanation of these processes:
 
 # Ask
-Ask effective questions
-Define the scope of the analysis
-Define what success looks like
+- Ask effective questions
+- Define the scope of the analysis
+- Define what success looks like
 
 # Prepare
-Verify data integrity
-Check data credibility and reliability
-Check data types
-Merge datasets
+- Verify data integrity
+- Check data credibility and reliability
+- Check data types
+- Merge datasets
 
 # Process
-Clean, Remove and Transform data
-Document cleaning processes and results
+- Clean, Remove and Transform data
+- Document cleaning processes and results
 
 # Analyze
-Identify patterns
-Draw conclusions
-Make predictions
+- Identify patterns
+- Draw conclusions
+- Make predictions
 
 # Share
-Create effective visuals
-Create a story for data
-Share insights to stakeholders
+- Create effective visuals
+- Create a story for data
+- Share insights to stakeholders
 
 # Act
-Give recommendations based on insights
-Solve problems
-Create something new
+- Give recommendations based on insights
+- Solve problems
+- Create something new
