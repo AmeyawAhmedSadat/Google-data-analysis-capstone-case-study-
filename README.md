@@ -18,16 +18,16 @@ Check data credibility and reliability
 Check data types
 Merge datasets
 
-#Process
+# Process
 Clean, Remove and Transform data
 Document cleaning processes and results
 
-#Analyze
+# Analyze
 Identify patterns
 Draw conclusions
 Make predictions
 
-#Share
+# Share
 Create effective visuals
 Create a story for data
 Share insights to stakeholders
