@@ -3,7 +3,7 @@ Cyclistic is a company that was launched in 2016 and offers a successful bike-sh
 
 ![logo](https://user-images.githubusercontent.com/34706028/140621439-d2cbf701-d716-4713-a1d2-a666390ba2ea.jpg)
 # Introduction
-This exploratory analysis case study is towards Capstome project requirement for Google Data Analytics Professional Certificate. The case study involves a bikeshare company's data of its customer's trip details over a 12 month period (November 2020 - October 2021). The data has been made available by Motivate International Inc. under this license.
+This exploratory analysis case study is towards Capstome project requirement for Google Data Analytics Professional Certificate. The case study involves a bikeshare company's data of its customer's trip details over a **13 month period (Jul 2021 - Jul 2022)**. The data has been made available by Motivate International Inc. under this [license](https://ride.divvybikes.com/data-license-agreement).
 
 The analysis will follow the 6 phases of the Data Analysis process: Ask, Prepare, Process, Analyze, and Act. A brief explanation of these processes:
 
