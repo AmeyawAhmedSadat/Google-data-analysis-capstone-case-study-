@@ -9,30 +9,72 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Scenario
-You are a junior data analyst working in the marketing analyst team at Cyclistic, a bike-share company in Chicago. The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, your team 
-wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, your team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve your recommendations, so they must be backed up with compelling data  insights and 
-professional data visualizations.  
+# Case Study: Does Cyclistic future successs depends on annual membership riders?
+The main goal of this document is to consolidate the downloaded Divvy data into one data frame and then conduct a simple analysis which would help the marketing team to understand **how  casual riders usage of Divvy bikes differ from annual membership riders** by finding  insights that will help that could be turned into recommendation to help the marketing team design a new marketing strategy to convert casual riders into annual members. 
 
-# Business Task
- The goal of this project is to understand how casual riders and annual members use Cyclistic bikes differently and to find insights that will help my team design a new marketing strategy to convert casual riders into annual members. Hence the **key questions** that my team and I are trying to answer are 
+# Introduction
+This exploratory analysis case study is towards Capstome project requirement for Google Data Analytics Professional Certificate. The case study involves a bikeshare company's data of its customer's trip details over a **13 month period (Jul 2021 - Jul 2022)**. The data has been made available by Motivate International Inc. under this [license](https://ride.divvybikes.com/data-license-agreement).
 
-- *1.* How do annual members and casual riders use Cyclistic bikes differently?
-- *2.* Why would casual riders buy Cyclist annual memberships?
-- *3.* How can Cyclistic use digital media to influence casual riders to become members?  
+The analysis will follow the 6 phases of the Data Analysis process: Ask, Prepare, Process, Analyze, and Act. A brief explanation of these processes:
 
- My main task is to answer the first Question by finding insigths which would help the
- marketing team answer the first question.
- 
-# Source of data
-The data has been made available by Motivate International Inc. under this [license](https://www.divvybikes.com/data-license-agreement). The data is a monthly data which begins at July 11th, 2021 andf ends at July 14th 2021. The data can be found [here](https://divvy-tripdata.s3.amazonaws.com/index.html).
+# Ask
+- Ask effective questions
+- Define the scope of the analysis
+- Define what success looks like
 
-## Libraries
-```{r message=FALSE, warning=FALSE, include=FALSE}
+# Prepare
+- Verify data integrity
+- Check data credibility and reliability
+- Check data types
+- Merge datasets
+
+# Process
+- Clean, Remove and Transform data
+- Document cleaning processes and results
+
+# Analyze
+- Identify patterns
+- Draw conclusions
+- Make predictions
+
+# Share
+- Create effective visuals
+- Create a story for data
+- Share insights to stakeholders
+
+# Act
+- Give recommendations based on insights
+- Solve problems
+- Create something new
+
+# 1. Ask
+**Scenario**: The cyclistic marketing team needs to design strategies aimed atconverting casual riders into annual members. Howver the marketing team needs to under how the casual riders and annual members differ.
+
+# Stakeholders
+- Director of marketing
+-Cyclistic executive team
+
+# Objective
+The main goal is therefore to analysis the 13-month period data to extract some insight on how the two main customer sgegment use the Cyclistic bikes differently.
+
+# Deliverables
+- Provide insights on how annual riders and casual riders use the Cyclistic bikes differently
+- Support the findings with effective visualizations
+- Based on the insights found, give recommendations on how to convert casual riders to member riders.
+
+# 2. Prepare and Process
+
+######  Source of data
+The data has been made available by Motivate International Inc. under this [license](https://www.divvybikes.com/data-license-agreement). The data is a monthly data which begins at July 11th, 2021 and ends at July 14th 2021. The data can be found [here](https://divvy-tripdata.s3.amazonaws.com/index.html). The data consist of a toal of **13 CSV files** starting from July 2021 to July 2022. Each of the files contain data of the monthly rides by customers of Cyclistic. The combined data is over 6 million observations hence doing data cleaning and  wrangling in excel will be slow thats why I have chosen to conduct all the analysis process in R. 
+
+## Load Libraries
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(janitor)
 library(here)
 library(lubridate)
+library(hms)
+library(anytime)
 ```
 
 ## Impoting files
@@ -55,15 +97,98 @@ Jul_secyr <- read_csv(here::here("Dataset/Jul_2022_tripdata.csv"))
 
 ### Comparaing datatype of the monthly data to further combine them
 ```{r}
-compare_df_cols(Apr_secyr, Dec_firstyr, Aug_firstyr, Feb_secyr, Jan_secyr, Jul_firstyr,
-                Jul_secyr, Jun_secyr, Mar_secyr, May_secyr, Nov_firstyr, Oct_firstyr,
-                Sep_firstyr)
+compare_df_cols(
+        Apr_secyr,
+        Dec_firstyr,
+        Aug_firstyr,
+        Feb_secyr,
+        Jan_secyr,
+        Jul_firstyr,
+        Jul_secyr,
+        Jun_secyr,
+        Mar_secyr,
+        May_secyr,
+        Nov_firstyr,
+        Oct_firstyr,
+        Sep_firstyr
+)
 ```
+
 
 ### Combining all the monthly dataframe into one dataframe
 ```{r}
-bike_rides_df <- rbind(Apr_secyr, Aug_firstyr, Dec_firstyr, Feb_secyr, Jan_secyr, Jul_firstyr, Jul_secyr,
-      Jun_secyr, Mar_secyr, May_secyr, Nov_firstyr, Oct_firstyr, Sep_firstyr)
+bike_rides_df <-
+        rbind(
+                Apr_secyr,
+                Aug_firstyr,
+                Dec_firstyr,
+                Feb_secyr,
+                Jan_secyr,
+                Jul_firstyr,
+                Jul_secyr,
+                Jun_secyr,
+                Mar_secyr,
+                May_secyr,
+                Nov_firstyr,
+                Oct_firstyr,
+                Sep_firstyr
+        )
 ```
+
+### viewing the data combined data
+```{r}
+glimpse(bike_rides_df)
+head(bike_rides_df)
+str(bike_rides_df)
+```
+
+# Data cleaning and transformation
+Observing from the structure of the data, there are inconsistencies in the dataype, the **started_at** and **ended_at** variables are stored as characters instead of dates hence I convert these variables into the right type of datatype.
+
+```{r}
+bike_rides_df$started_at <- ymd_hms(bike_rides_df$started_at)
+bike_rides_df$ended_at <- ymd_hms(bike_rides_df$ended_at)
+str(bike_rides_df)
+```
+
+### To compute the length of each ride, I need to exxtract start and end time from the started_at and ended_at colimns. I extracted hours, mins and secs from the started_at and ended_at columns and add new columns which will be start_time and end_time
+
+```{r}
+bike_rides_df$start_time <-
+       hms::as_hms(bike_rides_df$started_at)
+bike_rides_df$end_time <-
+        hms::as_hms(bike_rides_df$ended_at)
+```
+
+### Extraction of start date and end date
+```{r}
+bike_rides_df$start_date <-
+        as_date(bike_rides_df$started_at)
+bike_rides_df$end_date <-
+        as_date(bike_rides_df$ended_at)
+```
+
+### Extracting months from the date and converting them to month names
+```{r}
+bike_rides_df$month <- 
+        month(ymd(bike_rides_df$start_date)) 
+
+bike_rides_df$month <- month.abb[bike_rides_df$month]
+```
+
+### Extracting hours from time
+```{r}
+bike_rides_df$start_hour <- format(bike_rides_df$start_time, "%H")
+bike_rides_df$end_hour <- format(bike_rides_df$end_time, "%H")
+```
+
+
+### Removing empty rows and columns
+```{r}
+bike_rides_df <- bike_rides_df %>%
+        remove_empty(c("cols", "rows"))
+```
+
+
 
 
