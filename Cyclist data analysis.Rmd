@@ -115,7 +115,16 @@ compare_df_cols(
 )
 ```
 
+Observing from the structure of the data, there are inconsistencies in the datatype, the **started_at** and **ended_at** of **Apr_secyr* and **Oct_firstyr**  are stored as characters instead of dates hence I convert these variables into the right type of datatype.
 
+```{r}
+Apr_secyr$started_at <- ymd_hms(Apr_secyr$started_at)
+Apr_secyr$ended_at <- ymd_hms(Apr_secyr$ended_at)
+Oct_firstyr$started_at <- ymd_hms(Oct_firstyr$started_at)
+Oct_firstyr$ended_at <- ymd_hms(Oct_firstyr$ended_at)
+```
+
+Now that all datatype are consistent lets combine all dataframe into a single dataframe
 ### Combining all the monthly dataframe into one dataframe
 ```{r}
 bike_rides_df <-
@@ -136,6 +145,7 @@ bike_rides_df <-
         )
 ```
 
+Since we don't need the individual dataframe, lets remove them to have a clean environment to work with.
 ### Reomve individual dataframe 
 ```{r}
 rm(  Apr_secyr,
@@ -161,16 +171,6 @@ head(bike_rides_df)
 str(bike_rides_df)
 ```
 
-# Data cleaning and transformation
-Observing from the structure of the data, there are inconsistencies in the dataype, the **started_at** and **ended_at** variables are stored as characters instead of dates hence I convert these variables into the right type of datatype.
-
-```{r}
-bike_rides_df$started_at <- ymd_hms(bike_rides_df$started_at)
-bike_rides_df$ended_at <- ymd_hms(bike_rides_df$ended_at)
-str(bike_rides_df)
-bike_rides_df$started_at <- ymd_hms(bike_rides_df$started_at)
-bike_rides_df$ended_at <- ymd_hms(bike_rides_df$ended_at)
-```
 
 ### To compute the length of each ride, I need to exxtract start and end time from the started_at and ended_at colimns. I extracted hours, mins and secs from the started_at and ended_at columns and add new columns which will be start_time and end_time
 
@@ -193,9 +193,10 @@ bike_rides_df$end_date <-
 ```{r}
 bike_rides_df$month <- 
         month(ymd(bike_rides_df$start_date)) 
-
 bike_rides_df$month <- month.abb[bike_rides_df$month]
+
 ```
+
 
 ### Extracting hours from time
 ```{r}
@@ -261,21 +262,70 @@ grep("TEST", bike_rides_df$start_station_name, value = TRUE)
 
 ### Removing all trip duration that were less than 0
 ```{r}
-bike_rides_df <- bike_rides_df[!(bike_rides_df$trip_duration < 0),]
+bike_rides_df_new <- bike_rides_df[!(bike_rides_df$trip_duration < 0),]
 
 # Check if the test trip and station is removed
-grep("Test", bike_rides_df$start_station_name, value = TRUE)
+grep("Test", bike_rides_df_new$start_station_name, value = TRUE)
+```
+
+### Removing test trip
+```{r}
+bike_rides_df_new <-
+        bike_rides_df_new[!grepl("Test", bike_rides_df_new$start_station_name), ]
 ```
 
 
 ### view final dataframe before analysis
 ```{r}
-glimpse(bike_rides_df)
+glimpse(bike_rides_df_new)
 ```
 
 # Analyze & Share
 
+Our data frame is now ready to uncover some insights on how casual riders use Cyclistic bikes differently from member riders.
+Lets first of all take a statistical summary of the trip duration
 
+```{r warning=FALSE}
+attach(bike_rides_df_new)
+summary(trip_duration)
+```
+
+Agreggate summary by customer type
+```{r}
+bike_rides_df_new %>% 
+        select(trip_duration, customer_type) %>% 
+        group_by(customer_type) %>% 
+        summarise(min_trip= min(trip_duration),
+                  mean_trip=mean(trip_duration),
+                  max_trip =max(trip_duration), 
+                  median_trip = median(trip_duration),
+                   n=n()
+                  )
+```
+
+Looking at the mean for the overall trip duration which is  17.6mins, we can say that member riders has less trip duration than the overall mean trip duration. Casual riders on the other hand have a trip duration greater than the overall trip duration.   
+It is also necessary to mention that whiles the duration of trip taken by casual riders on average is longer than the average trip duration of member riders, member riders take more trip than casual riders
+
+### Total  number of trips by customer type and day of the week
+```{r}
+bike_rides_df_new %>%
+        select(customer_type, week_day, trip_duration) %>%
+        group_by(customer_type, week_day) %>%
+        summarise(number_of_trips = n(),
+                  average_trip_mins = mean(trip_duration)) %>%
+        arrange(customer_type, desc(number_of_trips))
+```
+
+### Total number of trips by bike type and start hour
+```{r}
+bike_rides_df_new %>% 
+        select(bike_type, trip_duration, start_hour, customer_type) %>% 
+        group_by(bike_type, customer_type) %>% 
+        summarise(average_trip_mins = mean(trip_duration),
+                  number_of_trips =n (),
+                  starting_trip_hour = mean(start_hour)) %>% 
+        arrange(customer_type, desc(number_of_trips))
+```
 
 
 
