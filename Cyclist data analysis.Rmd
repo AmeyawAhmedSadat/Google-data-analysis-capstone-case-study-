@@ -236,11 +236,46 @@ bike_rides_df$week_day <- weekdays(bike_rides_df$ride_date)
 ### Create trip length from the started_at and ended_at
 
 ```{r}
-
+options(scipen = 999)
 bike_rides_df$trip_duration <-
-
-  
+        as.double(difftime(bike_rides_df$end_time, bike_rides_df$start_time)) / 60
 ```
+
+To avoid errors in our data visualization and error in the analysis, we need to check if there is and trip duration that was less than 0. If there is, we will exclude them. These trips with less than 0 trip duration were / could be as a result of the test trip conducted by the company hence we will exclude them. The trips with their start station containing **"test"** in their names are the test trip the company made.
+
+# Examining if there is a trip duration that was less than 0
+```{r}
+bike_rides_df %>%
+        select(trip_duration) %>%
+        filter(trip_duration < 0) %>%
+        count()
+
+# count how many trips were test trips made by the company
+grep("test", bike_rides_df$start_station_name, value = TRUE) 
+        
+grep("Test", bike_rides_df$start_station_name, value = TRUE)
+        
+grep("TEST", bike_rides_df$start_station_name, value = TRUE) 
+        
+```
+
+### Removing all trip duration that were less than 0
+```{r}
+bike_rides_df <- bike_rides_df[!(bike_rides_df$trip_duration < 0),]
+
+# Check if the test trip and station is removed
+grep("Test", bike_rides_df$start_station_name, value = TRUE)
+```
+
+
+### view final dataframe before analysis
+```{r}
+glimpse(bike_rides_df)
+```
+
+# Analyze & Share
+
+
 
 
 
