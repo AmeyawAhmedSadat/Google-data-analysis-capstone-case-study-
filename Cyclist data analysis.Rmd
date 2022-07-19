@@ -76,6 +76,7 @@ library(lubridate)
 library(hms)
 library(anytime)
 library(scales)
+library(zoo)
 ```
 
 ## Impoting files
@@ -93,25 +94,24 @@ Apr_secyr <- read.csv(here::here("Dataset/Apr_2022_tripdata.csv"))
 May_secyr <- read_csv(here::here("Dataset/May_2022_tripdata.csv"))
 Jun_secyr <- read_csv(here::here("Dataset/Jun_2022_tripdata.csv"))
 Jul_secyr <- read_csv(here::here("Dataset/Jul_2022_tripdata.csv"))
-
 ```
 
 ### Comparaing datatype of the monthly data to further combine them
 ```{r}
 compare_df_cols(
-        Apr_secyr,
-        Dec_firstyr,
-        Aug_firstyr,
-        Feb_secyr,
-        Jan_secyr,
-        Jul_firstyr,
-        Jul_secyr,
-        Jun_secyr,
-        Mar_secyr,
-        May_secyr,
-        Nov_firstyr,
-        Oct_firstyr,
-        Sep_firstyr
+  Apr_secyr,
+  Dec_firstyr,
+  Aug_firstyr,
+  Feb_secyr,
+  Jan_secyr,
+  Jul_firstyr,
+  Jul_secyr,
+  Jun_secyr,
+  Mar_secyr,
+  May_secyr,
+  Nov_firstyr,
+  Oct_firstyr,
+  Sep_firstyr
 )
 ```
 
@@ -128,39 +128,41 @@ Now that all datatype are consistent lets combine all dataframe into a single da
 ### Combining all the monthly dataframe into one dataframe
 ```{r}
 bike_rides_df <-
-        rbind(
-                Apr_secyr,
-                Aug_firstyr,
-                Dec_firstyr,
-                Feb_secyr,
-                Jan_secyr,
-                Jul_firstyr,
-                Jul_secyr,
-                Jun_secyr,
-                Mar_secyr,
-                May_secyr,
-                Nov_firstyr,
-                Oct_firstyr,
-                Sep_firstyr
-        )
+  rbind(
+    Apr_secyr,
+    Aug_firstyr,
+    Dec_firstyr,
+    Feb_secyr,
+    Jan_secyr,
+    Jul_firstyr,
+    Jul_secyr,
+    Jun_secyr,
+    Mar_secyr,
+    May_secyr,
+    Nov_firstyr,
+    Oct_firstyr,
+    Sep_firstyr
+  )
 ```
 
 Since we don't need the individual dataframe, lets remove them to have a clean environment to work with.
 ### Reomve individual dataframe 
 ```{r}
-rm(  Apr_secyr,
-        Dec_firstyr,
-        Aug_firstyr,
-        Feb_secyr,
-        Jan_secyr,
-        Jul_firstyr,
-        Jul_secyr,
-        Jun_secyr,
-        Mar_secyr,
-        May_secyr,
-        Nov_firstyr,
-        Oct_firstyr,
-        Sep_firstyr)
+rm(
+  Apr_secyr,
+  Dec_firstyr,
+  Aug_firstyr,
+  Feb_secyr,
+  Jan_secyr,
+  Jul_firstyr,
+  Jul_secyr,
+  Jun_secyr,
+  Mar_secyr,
+  May_secyr,
+  Nov_firstyr,
+  Oct_firstyr,
+  Sep_firstyr
+)
 ```
 
 
@@ -176,56 +178,54 @@ str(bike_rides_df)
 
 ```{r}
 bike_rides_df$start_time <-
-       hms::as_hms(bike_rides_df$started_at)
+  hms::as_hms(bike_rides_df$started_at)
 bike_rides_df$end_time <-
-        hms::as_hms(bike_rides_df$ended_at)
+  hms::as_hms(bike_rides_df$ended_at)
 ```
 
 ### Extraction of start date and end date
 ```{r}
 bike_rides_df$start_date <-
-        as_date(bike_rides_df$started_at)
+  as_date(bike_rides_df$started_at)
 bike_rides_df$end_date <-
-        as_date(bike_rides_df$ended_at)
+  as_date(bike_rides_df$ended_at)
+```
+
+```{r}
+bike_rides_df$start_hour <- 
+  strptime(bike_rides_df$start_time, "%H") %>%
+  hour()
 ```
 
 ### Extracting months from the date and converting them to month names
 ```{r}
-bike_rides_df$month <- 
-        month(ymd(bike_rides_df$start_date)) 
-bike_rides_df$month <- month.abb[bike_rides_df$month]
-
+bike_rides_df$month <-
+  as.yearmon(bike_rides_df$start_date)
 ```
 
-
-### Extracting hours from time
-```{r}
-bike_rides_df$start_hour <- strptime(bike_rides_df$start_time, "%H") %>% 
-        hour()
-bike_rides_df$end_hour <- strptime(bike_rides_df$end_time, "%H") %>% 
-        hour()
-
-```
 
 ### Some of the variables are irrelevant in answering the questions I aim to answer. Hence I will remove such coilunns
 
 ```{r}
-bike_rides_df <- bike_rides_df %>% 
-       select(rideable_type,
-              started_at,
-              ended_at,
-              start_station_name,
-              end_station_name,
-              member_casual,
-              start_time,
-              end_time,
-              start_date,
-              month,
-              start_hour,
-              end_hour) %>% 
-        rename("bike_type" = rideable_type,
-               "customer_type" = member_casual,
-               "ride_date" =start_date)
+bike_rides_df <- bike_rides_df %>%
+  select(
+    rideable_type,
+    started_at,
+    ended_at,
+    start_station_name,
+    end_station_name,
+    member_casual,
+    start_time,
+    end_time,
+    start_date,
+    month,
+    start_hour
+  ) %>%
+  rename(
+    "bike_type" = rideable_type,
+    "customer_type" = member_casual,
+    "ride_date" = start_date
+  )
 ```
 
 ### Extract day of the week from date the trip started
@@ -239,7 +239,7 @@ bike_rides_df$week_day <- weekdays(bike_rides_df$ride_date)
 ```{r}
 options(scipen = 999)
 bike_rides_df$trip_duration <-
-        as.double(difftime(bike_rides_df$end_time, bike_rides_df$start_time)) / 60
+  as.double(difftime(bike_rides_df$end_time, bike_rides_df$start_time)) / 60
 ```
 
 To avoid errors in our data visualization and error in the analysis, we need to check if there is and trip duration that was less than 0. If there is, we will exclude them. These trips with less than 0 trip duration were / could be as a result of the test trip conducted by the company hence we will exclude them. The trips with their start station containing **"test"** in their names are the test trip the company made.
@@ -247,31 +247,32 @@ To avoid errors in our data visualization and error in the analysis, we need to 
 # Examining if there is a trip duration that was less than 0
 ```{r}
 bike_rides_df %>%
-        select(trip_duration) %>%
-        filter(trip_duration < 0) %>%
-        count()
+  select(trip_duration) %>%
+  filter(trip_duration < 0) %>%
+  count()
 
 # count how many trips were test trips made by the company
-grep("test", bike_rides_df$start_station_name, value = TRUE) 
-        
+grep("test", bike_rides_df$start_station_name, value = TRUE)
+
 grep("Test", bike_rides_df$start_station_name, value = TRUE)
-        
-grep("TEST", bike_rides_df$start_station_name, value = TRUE) 
-        
+
+grep("TEST", bike_rides_df$start_station_name, value = TRUE)
 ```
 
 ### Removing all trip duration that were less than 0
 ```{r}
-bike_rides_df_new <- bike_rides_df[!(bike_rides_df$trip_duration < 0),]
+bike_rides_df_new <- bike_rides_df[!(bike_rides_df$trip_duration < 0), ]
 
 # Check if the test trip and station is removed
 grep("Test", bike_rides_df_new$start_station_name, value = TRUE)
+
+rm(bike_rides_df)
 ```
 
 ### Removing test trip
 ```{r}
 bike_rides_df_new <-
-        bike_rides_df_new[!grepl("Test", bike_rides_df_new$start_station_name), ]
+  bike_rides_df_new[!grepl("Test", bike_rides_df_new$start_station_name), ]
 ```
 
 
@@ -290,17 +291,18 @@ attach(bike_rides_df_new)
 summary(trip_duration)
 ```
 
-Agreggate summary by customer type
+# Agreggate summary by customer type
 ```{r}
-bike_rides_df_new %>% 
-        select(trip_duration, customer_type) %>% 
-        group_by(customer_type) %>% 
-        summarise(min_trip= min(trip_duration),
-                  mean_trip=mean(trip_duration),
-                  max_trip =max(trip_duration), 
-                  median_trip = median(trip_duration),
-                   n=n()
-                  )
+bike_rides_df_new %>%
+  select(trip_duration, customer_type) %>%
+  group_by(customer_type) %>%
+  summarise(
+    min_trip = min(trip_duration),
+    mean_trip = mean(trip_duration),
+    max_trip = max(trip_duration),
+    median_trip = median(trip_duration),
+    n = n()
+  )
 ```
 
 Looking at the mean for the overall trip duration which is  17.6mins, we can say that member riders has less trip duration than the overall mean trip duration. Casual riders on the other hand have a trip duration greater than the overall trip duration.   
@@ -309,23 +311,79 @@ It is also necessary to mention that whiles the duration of trip taken by casual
 ### Total  number of trips by customer type and day of the week
 ```{r}
 bike_rides_df_new %>%
-        select(customer_type, week_day, trip_duration) %>%
-        group_by(customer_type, week_day) %>%
-        summarise(number_of_trips = n(),
-                  average_trip_mins = mean(trip_duration)) %>%
-        arrange(customer_type, desc(number_of_trips))
+  select(
+    customer_type,
+    week_day,
+    trip_duration
+  ) %>%
+  group_by(customer_type, week_day) %>%
+  summarise(
+    number_of_trips = n(),
+    average_trip_mins = mean(trip_duration)
+  ) %>%
+  arrange(customer_type, desc(number_of_trips))
 ```
 
-### Total number of trips by bike type and start hour
+### Total number of trips by customer type  and bike type
 ```{r}
-bike_rides_df_new %>% 
-        select(bike_type, trip_duration, start_hour, customer_type) %>% 
-        group_by(bike_type, customer_type) %>% 
-        summarise(average_trip_mins = mean(trip_duration),
-                  number_of_trips =n (),
-                  starting_trip_hour = mean(start_hour)) %>% 
-        arrange(customer_type, desc(number_of_trips))
+bike_rides_df_new %>%
+  select(
+    bike_type,
+    trip_duration,
+    customer_type
+  ) %>%
+  group_by(bike_type, customer_type) %>%
+  summarise(
+    average_trip_mins = mean(trip_duration),
+    number_of_trips = n()
+  ) %>%
+  arrange(
+    customer_type,
+    desc(average_trip_mins)
+  )
 ```
 
+### Total monthly trips by customer type
+```{r}
+bike_rides_df_new %>%
+  select(
+    month,
+    customer_type,
+    trip_duration
+  ) %>%
+  group_by(month, customer_type) %>%
+  summarise(
+    average_trip_mins = mean(trip_duration),
+    number_of_trips = n()
+  ) %>%
+  arrange(desc(number_of_trips)) 
+```
 
+### Top most demanded hours (24 hours) of bikes by  customer type
+```{r}
+hourly_demand<- bike_rides_df_new %>%
+  select(
+    start_time,
+    week_day,
+    customer_type
+  ) %>% 
+  group_by(customer_type, start_time, week_day) %>%
+  summarise(number_of_trips = n()) %>%
+  arrange(
+    desc(number_of_trips)
+  ) 
+  
+```
+
+```{r}
+ggplot(data = hourly_demand, aes(x = start_time, y = number_of_trips, color = customer_type)) +
+  geom_area() +
+  theme_classic() +
+  theme(
+    axis.title = element_text(size =20, face = "bold"),
+    axis.text = element_text(size = 14, face = "bold"), 
+    legend.text = element_text(size = 14, color = "black"),
+    legend.title = element_text(size = 20, color = "black", face = "bold")
+  )
+```
 
