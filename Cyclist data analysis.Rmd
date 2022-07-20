@@ -77,6 +77,7 @@ library(hms)
 library(anytime)
 library(scales)
 library(zoo)
+library(ggcharts)
 ```
 
 ## Impoting files
@@ -276,8 +277,18 @@ bike_rides_df_new <-
 ```
 
 
-### view final dataframe before analysis
+### view final dataframe before analysis  and give levels to customer type and bike type
 ```{r}
+bike_rides_df_new$customer_type <-
+  factor(
+    bike_rides_df_new$customer_type,
+    levels = c("member", "casual")
+  )
+bike_rides_df_new$bike_type <- 
+  factor(
+    bike_type, 
+    levels = c("classic_bike", "electric_bike", "docked_bike")
+  )
 glimpse(bike_rides_df_new)
 ```
 
@@ -310,7 +321,7 @@ It is also necessary to mention that whiles the duration of trip taken by casual
 
 ### Total  number of trips by customer type and day of the week
 ```{r}
-bike_rides_df_new %>%
+ bike_rides_df_new %>%
   select(
     customer_type,
     week_day,
@@ -323,6 +334,49 @@ bike_rides_df_new %>%
   ) %>%
   arrange(customer_type, desc(number_of_trips))
 ```
+
+### Visualize total trips by customer type and day of the week
+```{r}
+trip_week_day<- bike_rides_df_new %>%
+  select(
+    customer_type,
+    week_day,
+    trip_duration
+  ) %>%
+  group_by(customer_type, week_day) %>%
+  summarise(
+    number_of_trips = n(),
+    average_trip_mins = mean(trip_duration)
+  ) %>%
+  arrange(customer_type, desc(number_of_trips))
+
+weekorder<- trip_week_day$week_day[
+  order(trip_week_day$customer_type, 
+        trip_week_day$number_of_trips)
+  ]
+
+trip_week_day$week_day <- factor(trip_week_day$week_day, levels = unique(weekorder))
+
+ggplot(trip_week_day, aes(x = number_of_trips, y = week_day)) +
+  geom_segment(aes(yend = week_day), xend = 0, colour = "grey50") +
+  geom_point(size = 6, aes(colour = customer_type)) +
+  scale_colour_manual(values = c("#00AAA0", "#FF7A5A"), limits = c("member", "casual"), guide = "none") +
+  theme_bw() +
+  theme(
+    panel.grid.major.y = element_blank(),
+    axis.title = element_text(face = "bold"),
+  ) +
+  labs(
+    title = " Number of trip by weekday and customer type",
+    x = "Number of trips",
+    y = "Day of the week"
+  ) +
+  facet_grid(customer_type ~ ., scales = "free_y", space = "free_y")
+  
+```
+
+Looking at the table and graph above, it can be concluded that, ***members*** are very active users of the bike during week days. **Members** have most of their trips on Wednesday, Tuesday and Thursday and they have less trips during the weekends. On the hand casual riders are mostly using the service during the weekends. An interesting pattern to take note is that, apart from the weekends where casual riders uses the bike service more than the member riders, member riders are consistently using the service through out the week.
+
 
 ### Total number of trips by customer type  and bike type
 ```{r}
@@ -343,6 +397,56 @@ bike_rides_df_new %>%
   )
 ```
 
+### Visualize Total number of trips by bike and customer type
+```{r}
+bike_type_number_trips<- bike_rides_df_new %>%
+  select(
+    bike_type,
+    trip_duration,
+    customer_type
+  ) %>%
+  group_by(bike_type, customer_type) %>%
+  summarise(
+    average_trip_mins = mean(trip_duration),
+    number_of_trips = n()
+  ) %>%
+  arrange(
+    customer_type,
+    (average_trip_mins)
+  )
+
+bike_type_number_trips<- bike_type_number_trips %>% 
+  mutate(percentage = number_of_trips/sum(number_of_trips))
+  
+ggplot(
+  bike_type_number_trips, aes(x = bike_type, y = number_of_trips, fill = customer_type)
+) +
+  geom_col(position = "dodge", color = "black", width = 0.8) +
+  labs(
+    title = "Total number of trips by bike type and customer type",
+    x = "bike type",
+    y = "number of trips",
+    fill = "customer type"
+  ) +
+  theme(
+    axis.title.x = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 60)
+  ) +
+  theme_bw() +
+  scale_fill_manual(values = c("#00AAA0", "#FF7A5A"), guide = "none") +
+  geom_label(aes(label = percent(percentage, scale = 100)),
+    position = position_dodge(0.8),
+    size = 3,
+    vjust = 1.2,
+    hjust = 0.5,
+    colour = "black"
+  ) +
+  facet_wrap(~customer_type)
+  
+```
+
+
+
 ### Total monthly trips by customer type
 ```{r}
 bike_rides_df_new %>%
@@ -358,6 +462,7 @@ bike_rides_df_new %>%
   ) %>%
   arrange(desc(number_of_trips)) 
 ```
+
 
 ### Top most demanded hours (24 hours) of bikes by  customer type
 ```{r}
@@ -376,14 +481,7 @@ hourly_demand<- bike_rides_df_new %>%
 ```
 
 ```{r}
-ggplot(data = hourly_demand, aes(x = start_time, y = number_of_trips, color = customer_type)) +
-  geom_area() +
-  theme_classic() +
-  theme(
-    axis.title = element_text(size =20, face = "bold"),
-    axis.text = element_text(size = 14, face = "bold"), 
-    legend.text = element_text(size = 14, color = "black"),
-    legend.title = element_text(size = 20, color = "black", face = "bold")
-  )
+
+  
 ```
 
