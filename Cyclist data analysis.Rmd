@@ -2,7 +2,11 @@
 title: "Cyclistic bike-share analysis case study!"
 author: "Ameyaw Ahmed Analysis"
 date: '2022-07-15'
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -78,6 +82,13 @@ library(anytime)
 library(scales)
 library(zoo)
 library(ggcharts)
+library(showtext)
+library(glue)
+```
+
+```{r}
+font_add_google(family = "josefin-new", "Josefin Sans")
+showtext_auto()
 ```
 
 ## Impoting files
@@ -193,7 +204,7 @@ bike_rides_df$end_date <-
 ```
 
 ```{r}
-bike_rides_df$start_hour <- 
+bike_rides_df$start_hour <-
   strptime(bike_rides_df$start_time, "%H") %>%
   hour()
 ```
@@ -284,15 +295,15 @@ bike_rides_df_new$customer_type <-
     bike_rides_df_new$customer_type,
     levels = c("member", "casual")
   )
-bike_rides_df_new$bike_type <- 
+bike_rides_df_new$bike_type <-
   factor(
-    bike_type, 
+    bike_rides_df_new$bike_type,
     levels = c("classic_bike", "electric_bike", "docked_bike")
   )
 glimpse(bike_rides_df_new)
 ```
 
-# Analyze & Share
+# 4 & 5. Analyze & Share
 
 Our data frame is now ready to uncover some insights on how casual riders use Cyclistic bikes differently from member riders.
 Lets first of all take a statistical summary of the trip duration
@@ -313,15 +324,18 @@ bike_rides_df_new %>%
     max_trip = max(trip_duration),
     median_trip = median(trip_duration),
     n = n()
-  )
+  ) %>%
+  mutate(propor = n / sum(n)) %>%
+  group_by(customer_type)
 ```
 
 Looking at the mean for the overall trip duration which is  17.6mins, we can say that member riders has less trip duration than the overall mean trip duration. Casual riders on the other hand have a trip duration greater than the overall trip duration.   
 It is also necessary to mention that whiles the duration of trip taken by casual riders on average is longer than the average trip duration of member riders, member riders take more trip than casual riders
 
+
 ### Total  number of trips by customer type and day of the week
 ```{r}
- bike_rides_df_new %>%
+bike_rides_df_new %>%
   select(
     customer_type,
     week_day,
@@ -337,7 +351,7 @@ It is also necessary to mention that whiles the duration of trip taken by casual
 
 ### Visualize total trips by customer type and day of the week
 ```{r}
-trip_week_day<- bike_rides_df_new %>%
+trip_week_day <- bike_rides_df_new %>%
   select(
     customer_type,
     week_day,
@@ -350,32 +364,53 @@ trip_week_day<- bike_rides_df_new %>%
   ) %>%
   arrange(customer_type, desc(number_of_trips))
 
-weekorder<- trip_week_day$week_day[
-  order(trip_week_day$customer_type, 
-        trip_week_day$number_of_trips)
-  ]
+weekorder <- trip_week_day$week_day[
+  order(
+    trip_week_day$customer_type,
+    trip_week_day$number_of_trips
+  )
+]
 
 trip_week_day$week_day <- factor(trip_week_day$week_day, levels = unique(weekorder))
 
-ggplot(trip_week_day, aes(x = number_of_trips, y = week_day)) +
-  geom_segment(aes(yend = week_day), xend = 0, colour = "grey50") +
-  geom_point(size = 6, aes(colour = customer_type)) +
-  scale_colour_manual(values = c("#00AAA0", "#FF7A5A"), limits = c("member", "casual"), guide = "none") +
+ggplot(
+  trip_week_day,
+  aes(x = number_of_trips, y = week_day)
+) +
+  geom_segment(
+    aes(yend = week_day),
+    xend = 0, colour = "grey50"
+  ) +
+  geom_point(
+    size = 6, aes(colour = customer_type)
+  ) +
+  scale_colour_manual(
+    values = c("#00AAA0", "#FF7A5A"),
+    limits = c("member", "casual"),
+    guide = "none"
+  ) +
   theme_bw() +
   theme(
     panel.grid.major.y = element_blank(),
-    axis.title = element_text(face = "bold"),
+    axis.title = element_text(
+      face = "bold",
+      family = "josefin-new"
+    ),
+    plot.title = element_text(
+      family = "josefin-new",
+      hjust = 0.5
+    )
   ) +
   labs(
     title = " Number of trip by weekday and customer type",
     x = "Number of trips",
     y = "Day of the week"
   ) +
-  facet_grid(customer_type ~ ., scales = "free_y", space = "free_y")
-  
+  facet_grid(customer_type ~ ., scales = "free_y", space = "free_y") +
+  scale_x_continuous(labels = ~ format(.x, scientific = FALSE))
 ```
 
-Looking at the table and graph above, it can be concluded that, ***members*** are very active users of the bike during week days. **Members** have most of their trips on Wednesday, Tuesday and Thursday and they have less trips during the weekends. On the hand casual riders are mostly using the service during the weekends. An interesting pattern to take note is that, apart from the weekends where casual riders uses the bike service more than the member riders, member riders are consistently using the service through out the week.
+Looking at the table and graph above, it can be concluded that, ***members*** are very active users of the bike during week days. **Members** have most of their trips on Wednesday, Tuesday and Thursday and they have less trips during the weekends. On the hand casual riders are mostly using the service during the weekends. An interesting pattern to take note is that, apart from the weekends where casual riders uses the bike service more than the member riders, member riders are consistently using the service through out the week. Additional customer personal data could be collected to figure out the underlying reasons. The assumption made here is that, members use the bikes for work related activitis while casual workers normal ride for fun or for other reaons than work related reasons. Additional data would be needed to text this assumption.
 
 
 ### Total number of trips by customer type  and bike type
@@ -397,9 +432,9 @@ bike_rides_df_new %>%
   )
 ```
 
-### Visualize Total number of trips by bike and customer type
+### Visualize Total number of trips by bike and customer type and average duration
 ```{r}
-bike_type_number_trips<- bike_rides_df_new %>%
+bike_type_number_trips <- bike_rides_df_new %>%
   select(
     bike_type,
     trip_duration,
@@ -415,36 +450,51 @@ bike_type_number_trips<- bike_rides_df_new %>%
     (average_trip_mins)
   )
 
-bike_type_number_trips<- bike_type_number_trips %>% 
-  mutate(percentage = number_of_trips/sum(number_of_trips))
-  
+bike_type_number_trips <- bike_type_number_trips %>%
+  mutate(percentage = number_of_trips / sum(number_of_trips))
+
 ggplot(
   bike_type_number_trips, aes(x = bike_type, y = number_of_trips, fill = customer_type)
 ) +
   geom_col(position = "dodge", color = "black", width = 0.8) +
   labs(
-    title = "Total number of trips by bike type and customer type",
+    title = "Total number of trips by bike type, customer type and average trip duration",
     x = "bike type",
     y = "number of trips",
     fill = "customer type"
   ) +
-  theme(
-    axis.title.x = element_text(face = "bold"),
-    axis.text.x = element_text(angle = 60)
-  ) +
   theme_bw() +
   scale_fill_manual(values = c("#00AAA0", "#FF7A5A"), guide = "none") +
-  geom_label(aes(label = percent(percentage, scale = 100)),
+  geom_label(aes(label = paste(round(average_trip_mins, 0), "mins")),
     position = position_dodge(0.8),
     size = 3,
     vjust = 1.2,
     hjust = 0.5,
-    colour = "black"
+    colour = "black",
+    family = "josefin-new",
+    fill = "white"
   ) +
-  facet_wrap(~customer_type)
-  
+  facet_wrap(~customer_type) +
+  theme(
+    axis.text.x = element_text(
+      hjust = 1,
+      family = "josefin-new",
+      size = 10
+    ),
+    axis.title = element_text(
+      face = "bold",
+      family = "josefin-new"
+    ),
+    plot.title = element_text(
+      family = "josefin-new",
+      size = 12,
+      hjust = 0.5,
+      vjust = 1
+    )
+  )
 ```
 
+From the table and graph above, we can see that majority of members usually use class classic bikes and their average trip duration is lesser than the average trip duration for casual bike users who uses the same type of bike. An interesting pattern to notice here is that, member riders hardly use dock bikes instead casual riders uses this type of bike and they have the longest average trip duration of about 45mins but also people tend to use it less among all both customer types. 
 
 
 ### Total monthly trips by customer type
@@ -460,28 +510,177 @@ bike_rides_df_new %>%
     average_trip_mins = mean(trip_duration),
     number_of_trips = n()
   ) %>%
-  arrange(desc(number_of_trips)) 
+  arrange(desc(number_of_trips))
 ```
 
+### Visualize the total number of trips per month by customer type
 
-### Top most demanded hours (24 hours) of bikes by  customer type
 ```{r}
-hourly_demand<- bike_rides_df_new %>%
+monthly_ride_df <- bike_rides_df_new %>%
   select(
-    start_time,
-    week_day,
-    customer_type
-  ) %>% 
-  group_by(customer_type, start_time, week_day) %>%
-  summarise(number_of_trips = n()) %>%
-  arrange(
-    desc(number_of_trips)
-  ) 
-  
+    month,
+    customer_type,
+    trip_duration
+  ) %>%
+  group_by(month, customer_type) %>%
+  summarise(
+    average_trip_mins = mean(trip_duration),
+    number_of_trips = n()
+  ) %>%
+  arrange(desc(number_of_trips))
+
+ggplot(
+  monthly_ride_df, aes(
+    x = (as.Date.yearmon(monthly_ride_df$month, 1)),
+    y = number_of_trips, fill = customer_type
+  )
+) +
+  geom_col(position = "dodge") +
+  scale_x_date(
+    date_breaks = "month",
+    date_labels = "%b-%Y",
+    expand = c(0, 0)
+  ) +
+  theme_bw() +
+  theme(
+    axis.title.y = element_text(
+      face = "bold",
+      family = "josefin-new",
+      vjust = 2.5
+    ),
+    axis.text.x = element_text(
+      angle = 45, hjust = 1.03,
+      family = "josefin-new"
+    ),
+    axis.title.x = element_text(
+      family = "josefin-new",
+      face = "bold"
+    ),
+    plot.title = element_text(
+      hjust = 0.5,
+      vjust = 2,
+      family = "josefin-new",
+      size = 12,
+      face = "bold"
+    )
+  ) +
+  labs(title = "Monthly trips by Customer type", x = "Months", y = "Number of trips") +
+  scale_fill_manual(values = c("#00AAA0", "#FF7A5A")) +
+  scale_y_continuous(labels = ~ format(.x, scientific = FALSE))
+```
+
+From the graph above we can see an upward trend between July and until somewhere in November. Within this period, both casual and member riders have high demand of the bikes. Anoth important trend to notice is that, from December until the beginning of July of the subsequent year, demand of bikes by both customer segment falls. This could be the a seasonality factor. Since it is expected that the weather becomes cold from December (changes from summer) until June. Further data could be collected to test the impact of factors such as wether, seasonality etc on the demand of bikes by both groups. However comparing the number of trips made in 2021 is relatively higher than 2022. Most trips made between Jul 2021 and September 2021 are made by casual riders hence casual riders demand are mostly between the summer time and this trend changes as most trips between from October 2021 are made by member riders. Additional analysis could be done to figure out why this happened.
+
+### Top most demanding hours (24 hours) of bikes by  customer type
+
+```{r}
+bike_rides_df_new %>%
+  select(start_hour, trip_duration, customer_type) %>%
+  group_by(start_hour, customer_type) %>%
+  summarise(number_of_trips = n(), mean_trip = mean(trip_duration)) %>%
+  arrange(desc(number_of_trips))
+```
+
+
+```{r Visualize demannding hours of bike}
+ggplot(
+  bike_rides_df_new, aes(x = start_hour)
+) +
+  geom_area(
+    aes(fill = customer_type),
+    stat = "count",
+    size = 0.5,
+    linetype = 1,
+    color = "black",
+    alpha = 0.6
+  ) +
+  scale_x_continuous(
+    breaks = seq(0, 23, by = 1),
+    expand = c(0, 0),
+    labels = function(x) glue("{x}:00")
+  ) +
+  scale_y_continuous(labels = ~ format(.x, scientific = FALSE)) +
+  theme_classic() +
+  theme(
+    axis.title = element_text(family = "josefin-new"),
+    plot.title = element_text(family = "josefin-new", face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1.2)
+  ) +
+  labs(title = "Demand over 24 hours", x = "Time (in hours)", y = "Number of trips") +
+  scale_fill_manual(values = c("#00AAA0", "#FF7A5A"))
+```
+
+Based on the graph and table above, members have two peaks periods where demand is high. The number of trips made by members are at peak around 7am -9am and then fall afterwards and the demand rises again around 5pm - 7pm. The peak demand of 5pm - 7pm also coincide with the peak demand of casual riders as well. The trend in demand by member riders support my initial assumption that member riders are mostly office workers and they may use the bike for commuting to and from work. More data would be needed to confirm this assumption
+
+
+### Average trip duration by day of the week and customer type
+```{r}
+bike_rides_df_new %>%
+  select(week_day, customer_type, trip_duration) %>%
+  group_by(week_day, customer_type) %>%
+  summarise(average_trip_duration = mean(trip_duration)) %>%
+  arrange(desc(average_trip_duration))
 ```
 
 ```{r}
+trip_dur_by_day <- bike_rides_df_new %>%
+  select(week_day, customer_type, trip_duration) %>%
+  group_by(week_day, customer_type) %>%
+  summarise(average_trip_duration = mean(trip_duration)) %>%
+  arrange(desc(average_trip_duration))
 
-  
+
+trip_dur_by_day %>%
+  ggplot(
+    aes(x = reorder(week_day, +average_trip_duration), y = average_trip_duration)
+  ) +
+  geom_col(aes(fill = customer_type), position = "dodge") +
+  scale_y_continuous(breaks = seq(0, 28, by = 5)) +
+  coord_flip() +
+  labs(
+    title = "Average trip duration per day by customer type",
+    x = "Day of the week",
+    y = "Average trip duration (mins)"
+  ) +
+  theme(
+    axis.title = element_text(family = "josefin-new"),
+    plot.title = element_text(family = "josefin-new", hjust = 0.5),
+  ) +
+  theme_bw() +
+  scale_fill_manual(values = c("#00AAA0", "#FF7A5A"))
 ```
 
+On a average the trip duration in mins of casual riders is as twice as the trip duration of member riders. This could be attribute to several factors such as the type of bike used. As indicated earlier, majority of member riders do use electric bikes and classic bikes than the number of casual riders who use similar bikes. The mins traveled doesn't equate to how far user went. Interestingly, casual riders do not have only their longest trip on weekends but also on average they have most of their trips on weekends.
+
+# 6. Act
+
+####   Important findings
+- 44% of the total rides were taken by casual riders while 56% of the total ride made between July 2021 t0 July 2022 were made by member riders. 
+
+- The overall trip duration was 17.6 mins. Casual riders average trip duration exceeded  the overall trip duration whiles member riders had less trip duration as compared to the overall trip duration.
+
+- Number of trips by casual riders are higher during the weekends whiles member riders are consistently riding throughout the week.
+
+- The highest number of trips made by member riders are made with the classic bike and the average duration is 13mins. The least trip duration of member riders on average is 12mins and its made with the electric bike. On the other hand, casual riders uses all three types of bikes and the average trip duration takes 24mins for classic bike. The highest average duration for casual riders are those who uses docked bike.
+
+ - In 2021 Casual riders were riding more in August and September whiles member riders were taking trips in October and November. There is a downward trend for both riders during Fall and Winter.
+ 
+ - The most demanding hour for the bikes are between 5pm and 7pm. Though member riders have two peaks which is demand is high in the morning between 7am and 9am but casual riders have just one peak.
+
+# Recommendations
+
+- Since casual riders demands  are high in certain months and drops during other months, offer membership for at least three months. This will gradually turn casual members into annual riders after they seen the number of benefits they would enjoy for these short monthly membership.
+
+- Marketing message should focus on paying same amount for more trip duration. Since casual riders pay service fee based on the duration they use the bike (assumption is pay as you use service) and the average duration of casual riders are higher than member riders, key marketing message should leverage on the trip duration by casual riders
+
+- Offer discount during weekdays for casual riders since the number of trips made by this segment of riders are mostly high on weekends but low during weekends.
+
+- Use peak pricing strategy during the peak demand periods. Since both member and casual riders have a peak demand between 5pm and 7pm, peak pricing strategy could be used where prices of casual riders who pay for the service as they use would be increased. This will force casual riders to opt for membership since the increase in price at peak hours won't affect members
+
+# Future goals and data that could help dive deep to better understand and make more concrete recommendations
+
+- Data about demographics could help dive deep into how certain demographics such as age, gender, income, locate etc affect each customer segment usage of the bike.
+
+- Pricing and sales data could help understand build models to know other factors which affect  these two customer segment.
+
+- Certain assumptions were made about how the employment status affect both segment differently as well how seasonality have impact differently on these customer segments hence data about customers, weather etc 
