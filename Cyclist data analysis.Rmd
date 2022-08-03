@@ -69,7 +69,7 @@ The main goal is therefore to analysis the 13-month period data to extract some 
 # 2. Prepare and Process
 
 ######  Source of data
-The data has been made available by Motivate International Inc. under this [license](https://www.divvybikes.com/data-license-agreement). The data is a monthly data which begins at July 11th, 2021 and ends at July 14th 2021. The data can be found [here](https://divvy-tripdata.s3.amazonaws.com/index.html). The data consist of a toal of **13 CSV files** starting from July 2021 to July 2022. Each of the files contain data of the monthly rides by customers of Cyclistic. The combined data is over 6 million observations hence doing data cleaning and  wrangling in excel will be slow thats why I have chosen to conduct all the analysis process in R. 
+The data has been made available by Motivate International Inc. under this [license](https://www.divvybikes.com/data-license-agreement). The data is a monthly data which begins at July 11th, 2021 and ends at July 14th 2021. The data can be found [here](https://divvy-tripdata.s3.amazonaws.com/index.html). The data consist of a total of **13 CSV files** starting from July 2021 to July 2022. Each of the files contain data of the monthly rides by customers of Cyclistic. The combined data is over 6 million observations hence doing data cleaning and  wrangling in excel will be slow that's why I have chosen to conduct all the analysis process in R. 
 
 ## Load Libraries
 ```{r message=FALSE, warning=FALSE}
@@ -91,7 +91,7 @@ font_add_google(family = "josefin-new", "Josefin Sans")
 showtext_auto()
 ```
 
-## Impoting files
+## Importing files
 ```{r include=FALSE}
 Jul_firstyr <- read_csv(here::here("Dataset/Jul_2021_tripdata.csv"))
 Aug_firstyr <- read_csv(here::here("Dataset/Aug_2021_tripdata.csv"))
@@ -127,7 +127,7 @@ compare_df_cols(
 )
 ```
 
-Observing from the structure of the data, there are inconsistencies in the datatype, the **started_at** and **ended_at** of **Apr_secyr* and **Oct_firstyr**  are stored as characters instead of dates hence I convert these variables into the right type of datatype.
+Observing the structure of the data, there are inconsistencies in the datatype, the **started_at** and **ended_at** of **Apr_secyr and Oct_firstyr**  are stored as characters instead of dates hence I convert these variables into the right type of datatype.
 
 ```{r}
 Apr_secyr$started_at <- ymd_hms(Apr_secyr$started_at)
@@ -216,7 +216,7 @@ bike_rides_df$month <-
 ```
 
 
-### Some of the variables are irrelevant in answering the questions I aim to answer. Hence I will remove such coilunns
+### Some of the variables are irrelevant in answering the questions I aim to answer. Hence I will remove such colunns
 
 ```{r}
 bike_rides_df <- bike_rides_df %>%
@@ -410,7 +410,7 @@ ggplot(
   scale_x_continuous(labels = ~ format(.x, scientific = FALSE))
 ```
 
-Looking at the table and graph above, it can be concluded that, ***members*** are very active users of the bike during week days. **Members** have most of their trips on Wednesday, Tuesday and Thursday and they have less trips during the weekends. On the hand casual riders are mostly using the service during the weekends. An interesting pattern to take note is that, apart from the weekends where casual riders uses the bike service more than the member riders, member riders are consistently using the service through out the week. Additional customer personal data could be collected to figure out the underlying reasons. The assumption made here is that, members use the bikes for work related activitis while casual workers normal ride for fun or for other reaons than work related reasons. Additional data would be needed to text this assumption.
+Looking at the table and graph above, it can be concluded that, ***members*** are very active users of the bike during week days. **Members** have most of their trips on Wednesday, Tuesday and Thursday and they have less trips during the weekends. On the hand casual riders are mostly using the service during the weekends. An interesting pattern to take note is that, apart from the weekends where casual riders uses the bike service more than the member riders, member riders are consistently using the service through out the week. Additional customer personal data could be collected to figure out the underlying reasons. The assumption made here is that, members use the bikes for work related activities while casual workers normal ride for fun or for other reasons than work related reasons. Additional data would be needed to text this assumption.
 
 
 ### Total number of trips by customer type  and bike type
@@ -569,7 +569,7 @@ ggplot(
   scale_y_continuous(labels = ~ format(.x, scientific = FALSE))
 ```
 
-From the graph above we can see an upward trend between July and until somewhere in November. Within this period, both casual and member riders have high demand of the bikes. Anoth important trend to notice is that, from December until the beginning of July of the subsequent year, demand of bikes by both customer segment falls. This could be the a seasonality factor. Since it is expected that the weather becomes cold from December (changes from summer) until June. Further data could be collected to test the impact of factors such as wether, seasonality etc on the demand of bikes by both groups. However comparing the number of trips made in 2021 is relatively higher than 2022. Most trips made between Jul 2021 and September 2021 are made by casual riders hence casual riders demand are mostly between the summer time and this trend changes as most trips between from October 2021 are made by member riders. Additional analysis could be done to figure out why this happened.
+From the graph above we can see an upward trend between July and until somewhere in November. Within this period, both casual and member riders have high demand of the bikes. Another important trend to notice is that, from December until the beginning of July of the subsequent year, demand of bikes by both customer segment falls. This could be the a seasonality factor. Since it is expected that the weather becomes cold from December (changes from summer) until June. Further data could be collected to test the impact of factors such as weather, seasonality etc on the demand of bikes by both groups. However comparing the number of trips made in 2021 is relatively higher than 2022. Most trips made between Jul 2021 and September 2021 are made by casual riders hence casual riders demand are mostly between the summer time and this trend changes as most trips between from October 2021 are made by member riders. Additional analysis could be done to figure out why this happened.
 
 ### Top most demanding hours (24 hours) of bikes by  customer type
 
